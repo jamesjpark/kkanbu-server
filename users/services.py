@@ -6,7 +6,9 @@ import time
 import requests
 from django_redis import get_redis_connection
 from django.core.cache import cache
-
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+import rest_framework.authtoken.models
 
 
 config = configparser.ConfigParser()
@@ -24,6 +26,20 @@ sms_uri = config['sms']['sms_uri']
 
 
 class UserServices(object):
+
+    def login(self, username):
+        user = User.objects.get(username=username)
+        try:
+            token = Token.objects.get(user=user)
+            token.delete()
+        except rest_framework.authtoken.models.Token.DoesNotExist:
+            pass
+        token = Token.objects.create(user=user)
+        data = {
+            'token': token.key,
+            'username': user.username,
+        }
+        return data
 
 
     def make_signature(self, access_key, secret_key, method, uri, timestmap):
