@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin-kkanbu
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=kkanbu@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    env_file: ./local.env
+    volumes:
+      - .:/drf_src
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+  redis:
+    image: redis:latest
+    command: redis-server --requirepass redispwd --port 6379
+    container_name: redis-kkanbu
+    hostname: redis
+    ports:
+      - "6379:6379"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+
